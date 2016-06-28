@@ -1,5 +1,5 @@
 # Sample Usage:
-# $bin/spark-submit ./test/data_visualization.py
+# $bin/spark-submit ./samples/data_visualization.py
 
 from pyspark import SparkConf
 from pyspark import SparkContext

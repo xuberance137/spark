@@ -1,5 +1,5 @@
 # Sample Usage:
-# $./bin/spark-submit --driver-memory 4g ./examples/src/main/python/movie_recommender.py 
+# $./bin/spark-submit --driver-memory 4g ./samples/movie_recommender.py 
 
 from pyspark import SparkConf
 from pyspark import SparkContext
@@ -43,3 +43,7 @@ for item in results:
 	print item[0][0], "\t", item[0][1], "\t", item[1][0], "\t", item[1][1] 
 print("Mean Squared Error : " + str(MSE))
 
+userID = 771
+numProducts = 15
+topRecs = model.recommendProducts(userID, numProducts)
+print "Recommended Products : ", topRecs
