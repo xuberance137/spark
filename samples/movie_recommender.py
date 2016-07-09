@@ -18,7 +18,7 @@ rawData =  sc.textFile(DATAFILEPATH)
 
 rawRatings = rawData.map(lambda line: line.split("\t")).take(3)
 
-#user, movie, rating -> Rating
+#user, movie, normalized rating -> Rating
 ratings = rawData.map(lambda line: line.split('\t')).map(lambda line: Rating(int(line[0]), int(line[1]), float(line[2])/5.0))
 
 # Build the recommendation model using Alternating Least Squares
