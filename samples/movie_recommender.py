@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-sc = SparkContext(appName="data_visualization")
+sc = SparkContext(appName="movie_recommender")
 sc.setLogLevel("ERROR")
 
 PATH = "/Users/gopal/projects/learning/spark/spark-1.6.1-bin-hadoop2.6"
