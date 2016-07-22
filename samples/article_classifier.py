@@ -1,20 +1,17 @@
 # Sample Usage:
-# $./bin/spark-submit --driver-memory 4g ./samples/movie_recommender.py 
+# $./bin/spark-submit ./samples/article_classifier.py
 
 from pyspark import SparkConf
 from pyspark import SparkContext
 from pyspark.mllib.regression import LabeledPoint
 from pyspark.mllib.linalg import Vectors
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 
 from pyspark.mllib.classification import LogisticRegressionWithSGD
 from pyspark.mllib.classification import SVMWithSGD
 from pyspark.mllib.classification import NaiveBayes
 from pyspark.mllib.tree import DecisionTree
 #from pyspark.mllib.tree.configuration import Algo
-from pyspark.mllib.tree.impurity import Entropy
+#from pyspark.mllib.tree.impurity import Entropy
 
 numIterations = 10
 maxTreeDepth = 5
