@@ -36,6 +36,14 @@ def extract_label(record):
 def extract_features_dt(record):
 	return np.array(map(float, record[2:14]))
 
+def squared_error(actual, pred):
+	return (pred - actual)**2
+
+def abs_error(actual, pred):
+	return np.abs(pred - actual)
+
+def squared_log_error(actual, pred):
+	return (np.log(1+pred) - np.log(1+actual))**2
 
 PATH = "/Users/gopal/projects/learning/spark/spark-1.6.1-bin-hadoop2.6"
 DATAFILEPATH = PATH + "/data/Bike-Sharing-Dataset/hour_noheader.csv"
@@ -71,6 +79,14 @@ preds = dt_model.predict(data_dt.map(lambda p: p.features))
 actual = data_dt.map(lambda p: p.label)
 true_vs_predicted_dt = actual.zip(preds)
 
+mae = true_vs_predicted.map(lambda (actual, pred): abs_error(actual, pred)).mean()
+rmse = np.sqrt(true_vs_predicted.map(lambda (actual, pred): squared_error(actual, pred)).mean())
+rmsle = np.sqrt(true_vs_predicted.map(lambda (actual, pred): squared_log_error(actual, pred)).mean())
+
+mae_dt = true_vs_predicted_dt.map(lambda (actual, pred): abs_error(actual, pred)).mean()
+rmse_dt = np.sqrt(true_vs_predicted_dt.map(lambda (actual, pred): squared_error(actual, pred)).mean())
+rmsle_dt = np.sqrt(true_vs_predicted_dt.map(lambda (actual, pred): squared_log_error(actual, pred)).mean())
+
 print "Linear Model predictions : "
 for item in true_vs_predicted.take(10):
 	print item
@@ -79,8 +95,8 @@ print "Decision Tree predictions : "
 for item in true_vs_predicted_dt.take(10):
 	print item
 
-
-
+print "Linear Model MAE : ", mae, " RMSE : ", rmse, " RMSLE : ", rmsle
+print "Decision Tree MAE : ", mae_dt, " RMSE : ", rmse_dt, " RMSLE : ", rmsle_dt
 
 
 
