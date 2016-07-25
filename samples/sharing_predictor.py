@@ -45,6 +45,13 @@ def abs_error(actual, pred):
 def squared_log_error(actual, pred):
 	return (np.log(1+pred) - np.log(1+actual))**2
 
+def evaulate(train, test, iterations, step, regParam, regType, intercept):
+	model = LinearRegressionWithSGD.train(train, iterations=iterations, step=float(step), intercept=intercept)
+	tp = test.map(lambda p: (p.label, model.predict(p.features)))
+	rmsle = np.sqrt(tp.map(lambda (t, p): squared_log_error(t, p)).mean())
+	return rmsle
+
+
 PATH = "/Users/gopal/projects/learning/spark/spark-1.6.1-bin-hadoop2.6"
 DATAFILEPATH = PATH + "/data/Bike-Sharing-Dataset/hour_noheader.csv"
 
@@ -75,6 +82,11 @@ dt_model = DecisionTree.trainRegressor(data_dt, {})
 preds = dt_model.predict(data_dt.map(lambda p: p.features))
 actual = data_dt.map(lambda p: p.label)
 true_vs_predicted_dt = actual.zip(preds)
+# variable transformation. Using log domain representation of target variable
+data_log = data.map(lambda p: LabeledPoint(np.log(p.label), p.features))
+model_log = LinearRegressionWithSGD.train(data_log, iterations=10, step=0.1)
+true_vs_predicted_log = data_log.map(lambda p: (np.exp(p.label), model_log.predict(p.features)))
+
 # Performanace Metrics
 mae = true_vs_predicted.map(lambda (actual, pred): abs_error(actual, pred)).mean()
 rmse = np.sqrt(true_vs_predicted.map(lambda (actual, pred): squared_error(actual, pred)).mean())
@@ -84,25 +96,38 @@ mae_dt = true_vs_predicted_dt.map(lambda (actual, pred): abs_error(actual, pred)
 rmse_dt = np.sqrt(true_vs_predicted_dt.map(lambda (actual, pred): squared_error(actual, pred)).mean())
 rmsle_dt = np.sqrt(true_vs_predicted_dt.map(lambda (actual, pred): squared_log_error(actual, pred)).mean())
 
-print "Linear Model predictions : "
-for item in true_vs_predicted.take(10):
-	print item
+mae_log = true_vs_predicted_log.map(lambda (actual, pred): abs_error(actual, pred)).mean()
+rmse_log = np.sqrt(true_vs_predicted_log.map(lambda (actual, pred): squared_error(actual, pred)).mean())
+rmsle_log = np.sqrt(true_vs_predicted_log.map(lambda (actual, pred): squared_log_error(actual, pred)).mean())
 
-print "Decision Tree predictions : "
-for item in true_vs_predicted_dt.take(10):
-	print item
+# print "Linear Model predictions : "
+# for item in true_vs_predicted.take(10):
+# 	print item
+
+# print "Decision Tree predictions : "
+# for item in true_vs_predicted_dt.take(10):
+# 	print item
 
 print "Linear Model MAE : ", mae, " RMSE : ", rmse, " RMSLE : ", rmsle
 print "Decision Tree MAE : ", mae_dt, " RMSE : ", rmse_dt, " RMSLE : ", rmsle_dt
+print "Log Linear Model MAE : ", mae_log, " RMSE : ", rmse_log, " RMSLE : ", rmsle_log
 
 # Creating training and testing data sets
 data_with_index = data.zipWithIndex().map(lambda (k,v): (v,k))
 data_test = data_with_index.sample(False, 0.2, 42).map(lambda (index, p): p)
 data_train = data_with_index.subtractByKey(data_test).map(lambda (index, p): p)
 
+data_with_index_dt = data_dt.zipWithIndex().map(lambda (k,v): (v,k))
+data_test_dt = data_with_index.sample(False, 0.2, 42).map(lambda (index, p): p)
+data_train_dt = data_with_index.subtractByKey(data_test).map(lambda (index, p): p)
 
+test_val = evaulate(data_train, data_test, 5, 0.01, 0.0, '12', False)
+print test_val
 
-
+# params = [1,5,10,20, 50, 100]
+# metrics = [evaulate(data_train, data_test, param, 0.01, 0.0, '12', False) for param in params]
+# print params
+# print metrics
 
 
 
