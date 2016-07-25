@@ -64,13 +64,10 @@ num_len = len(records.first()[10:14])
 # length of linear regressor feature vector
 total_len =  cat_len + num_len
 
+# formating RDDs from processed data to LabelPoints
 data = records.map(lambda datapoint: LabeledPoint(extract_label(datapoint), extract_features(datapoint)))
 data_dt = records.map(lambda datapoint: LabeledPoint(extract_label(datapoint), extract_features_dt(datapoint)))
-
-# sample = data.first()
-# print "Label : ", str(sample.label)
-# print "Features : ", str(sample.features)
-
+# training model and predicting for in sample LabelPoints
 linear_model = LinearRegressionWithSGD.train(data, iterations=10, step=0.1, intercept=False)
 true_vs_predicted = data.map(lambda p: (p.label, linear_model.predict(p.features)))
 
@@ -78,7 +75,7 @@ dt_model = DecisionTree.trainRegressor(data_dt, {})
 preds = dt_model.predict(data_dt.map(lambda p: p.features))
 actual = data_dt.map(lambda p: p.label)
 true_vs_predicted_dt = actual.zip(preds)
-
+# Performanace Metrics
 mae = true_vs_predicted.map(lambda (actual, pred): abs_error(actual, pred)).mean()
 rmse = np.sqrt(true_vs_predicted.map(lambda (actual, pred): squared_error(actual, pred)).mean())
 rmsle = np.sqrt(true_vs_predicted.map(lambda (actual, pred): squared_log_error(actual, pred)).mean())
@@ -97,6 +94,32 @@ for item in true_vs_predicted_dt.take(10):
 
 print "Linear Model MAE : ", mae, " RMSE : ", rmse, " RMSLE : ", rmsle
 print "Decision Tree MAE : ", mae_dt, " RMSE : ", rmse_dt, " RMSLE : ", rmsle_dt
+
+# Creating training and testing data sets
+data_with_index = data.zipWithIndex().map(lambda (k,v): (v,k))
+data_test = data_with_index.sample(False, 0.2, 42).map(lambda (index, p): p)
+data_train = data_with_index.subtractByKey(data_test).map(lambda (index, p): p)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
