@@ -11,6 +11,7 @@ import sys
 import zipcode
 
 PLOT_DATA = False
+VERBOSE = True
 
 sc = SparkContext(appName="movie_recommender")
 sc.setLogLevel("ERROR")
@@ -93,29 +94,6 @@ if __name__ == '__main__':
 		title = movieTitleList.lookup(item[1])
 		ratedTitles.append(title)
 
-	selectUserInfo = userInfo.lookup(userID)
-	print 
-	print selectUserInfo
-	print "Age : ", selectUserInfo[0][1]
-	print "Sex : ", selectUserInfo[0][2]
-	print "Profession : ", selectUserInfo[0][3]
-	try:
-		ZipCode = int(selectUserInfo[0][4])
-	except ValueError:
-		#Handle the exception
-		print 'Illegal ZipCode, setting to NYC **'
-		ZipCode = 10001 #NYC
-
-	print "ZipCode : ", ZipCode
-	userZip = zipcode.isequal(str(ZipCode))
-	print "Location : ", userZip.to_dict()		
-
-	print
-	print "Rated Products : "
-	for index in range(numProducts):  
-		if index < len(moviesForUser):
-			print moviesForUser[index][1], ratedTitles[index][0][1]
-
 	recommendedTitles = []
 	topRecs = model.recommendProducts(userID, numProducts)
 
@@ -123,11 +101,36 @@ if __name__ == '__main__':
 		title = movieTitleList.lookup(item[1])
 		recommendedTitles.append(title)
 
-	print
-	print "Recommended Products : "
-	for index in range(len(topRecs)):
-		print topRecs[index][1], recommendedTitles[index][0][1]
+	if VERBOSE:
 
+		selectUserInfo = userInfo.lookup(userID)
+		print 
+		print "Age : ", selectUserInfo[0][1]
+		print "Sex : ", selectUserInfo[0][2]
+		print "Profession : ", selectUserInfo[0][3]
+		try:
+			ZipCode = int(selectUserInfo[0][4])
+		except ValueError:
+			#Handle the exception
+			print 'Illegal ZipCode, setting to NYC **'
+			ZipCode = 10001 #NYC
+
+		print "ZipCode : ", ZipCode
+		userZip = zipcode.isequal(str(ZipCode))
+		print "Location : ", userZip.to_dict()['location_text']	
+
+		print
+		print "Rated Products : "
+		for index in range(numProducts):  
+			if index < len(moviesForUser):
+				print ratedTitles[index][0][1]
+				# print moviesForUser[index][1], ratedTitles[index][0][1]
+
+		print
+		print "Recommended Products : "
+		for index in range(len(topRecs)):
+			print recommendedTitles[index][0][1]
+			# print topRecs[index][1], recommendedTitles[index][0][1]
 
 
 
